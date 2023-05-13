@@ -14,38 +14,47 @@ Docker container which runs the latest headless qBittorrent client with WebUI wh
 * Specify name servers to add to container
 * Configure UID, GID, and UMASK for config files and downloads by qBittorrent
 * WebUI\CSRFProtection set to false by default for Unraid users
+* Restart container if health check is failed
 
 # Run container from Docker registry
 The container is available from the Docker registry and this is the simplest way to get it.
 To run the container use this command:
 
 ```
-$ docker run --privileged  -d \
-              -v /your/config/path/:/config \
-              -v /your/downloads/path/:/downloads \
+docker run --name torrent --restart always --privileged -d \
+              -v ~/tor/config/:/config \
+              -v ~/tor/downloads/:/downloads \
+              -e "VPN_ENABLED=yes" \
+              -e "VPN_TYPE=openvpn" \
               -e "VPN_ENABLED=yes" \
               -e "LAN_NETWORK=192.168.1.0/24" \
               -e "NAME_SERVERS=8.8.8.8,8.8.4.4" \
+              -e "HEALTH_CHECK_HOST=one.one.one.one" \
+              -e "HEALTH_CHECK_INTERVAL=10" \
+              -e "HEALTH_CHECK_PING_AMOUNT=10" \
               -p 8080:8080 \
               -p 8999:8999 \
               -p 8999:8999/udp \
-              markusmcnugen/qbittorrentvpn
+              torrent:0.3
 ```
 
 # Variables, Volumes, and Ports
 ## Environment Variables
-| Variable | Required | Function | Example |
-|----------|----------|----------|----------|
-|`VPN_ENABLED`| Yes | Enable VPN? (yes/no) Default:yes|`VPN_ENABLED=yes`|
-|`VPN_USERNAME`| No | If username and password provided, configures ovpn file automatically |`VPN_USERNAME=ad8f64c02a2de`|
-|`VPN_PASSWORD`| No | If username and password provided, configures ovpn file automatically |`VPN_PASSWORD=ac98df79ed7fb`|
-|`LAN_NETWORK`| Yes | Local Network with CIDR notation |`LAN_NETWORK=192.168.1.0/24`|
-|`NAME_SERVERS`| No | Comma delimited name servers |`NAME_SERVERS=8.8.8.8,8.8.4.4`|
-|`PUID`| No | UID applied to config files and downloads |`PUID=99`|
-|`PGID`| No | GID applied to config files and downloads |`PGID=100`|
-|`UMASK`| No | GID applied to config files and downloads |`UMASK=002`|
-|`WEBUI_PORT_ENV`| No | Applies WebUI port to qBittorrents config at boot (Must change exposed ports to match)  |`WEBUI_PORT_ENV=8080`|
-|`INCOMING_PORT_ENV`| No | Applies Incoming port to qBittorrents config at boot (Must change exposed ports to match) |`INCOMING_PORT_ENV=8999`|
+| Variable | Required | Function                                                                                  | Example |
+|----------|---------|-------------------------------------------------------------------------------------------|----------|
+|`VPN_ENABLED`| Yes     | Enable VPN? (yes/no) Default:yes                                                          |`VPN_ENABLED=yes`|
+|`VPN_USERNAME`| No      | If username and password provided, configures ovpn file automatically                     |`VPN_USERNAME=ad8f64c02a2de`|
+|`VPN_PASSWORD`| No      | If username and password provided, configures ovpn file automatically                     |`VPN_PASSWORD=ac98df79ed7fb`|
+|`LAN_NETWORK`| Yes     | Local Network with CIDR notation                                                          |`LAN_NETWORK=192.168.1.0/24`|
+|`HEALTH_CHECK_HOST`| Yes     | Host for ping                                                                             |`HEALTH_CHECK_HOST=one.one.one.one`|
+|`HEALTH_CHECK_INTERVAL`| Yes     | Interval between ping in a seconds                                                        |`HEALTH_CHECK_INTERVAL=10`|
+|`HEALTH_CHECK_PING_AMOUNT`| Yes     | Number of ping requests                                                                   |`HEALTH_CHECK_PING_AMOUNT=10`|
+|`NAME_SERVERS`| No      | Comma delimited name servers                                                              |`NAME_SERVERS=8.8.8.8,8.8.4.4`|
+|`PUID`| No      | UID applied to config files and downloads                                                 |`PUID=99`|
+|`PGID`| No      | GID applied to config files and downloads                                                 |`PGID=100`|
+|`UMASK`| No      | GID applied to config files and downloads                                                 |`UMASK=002`|
+|`WEBUI_PORT_ENV`| No      | Applies WebUI port to qBittorrents config at boot (Must change exposed ports to match)    |`WEBUI_PORT_ENV=8080`|
+|`INCOMING_PORT_ENV`| No      | Applies Incoming port to qBittorrents config at boot (Must change exposed ports to match) |`INCOMING_PORT_ENV=8999`|
 
 ## Volumes
 | Volume | Required | Function | Example |
@@ -106,21 +115,27 @@ To build this container, clone the repository and cd into it.
 
 ## Build it:
 ```
-$ cd /repo/location/qbittorrentvpn
-$ docker build -t qbittorrentvpn .
+$ ./build.sh
+OR
+$ docker build -t torrent:0.3 ./
 ```
 ## Run it:
 ```
-$ docker run --privileged  -d \
-              -v /your/config/path/:/config \
-              -v /your/downloads/path/:/downloads \
+docker run --name torrent --restart always --privileged -d \
+              -v ~/tor/config/:/config \
+              -v ~/tor/downloads/:/downloads \
+              -e "VPN_ENABLED=yes" \
+              -e "VPN_TYPE=openvpn" \
               -e "VPN_ENABLED=yes" \
               -e "LAN_NETWORK=192.168.1.0/24" \
               -e "NAME_SERVERS=8.8.8.8,8.8.4.4" \
+              -e "HEALTH_CHECK_HOST=one.one.one.one" \
+              -e "HEALTH_CHECK_INTERVAL=10" \
+              -e "HEALTH_CHECK_PING_AMOUNT=10" \
               -p 8080:8080 \
               -p 8999:8999 \
               -p 8999:8999/udp \
-              qbittorrentvpn
+              torrent:0.3
 ```
 
 This will start a container as described in the "Run container from Docker registry" section.

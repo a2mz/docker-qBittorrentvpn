@@ -81,7 +81,21 @@ if [ -e /proc/$qbpid ]; then
 	if [[ -e /config/qBittorrent/data/logs/qbittorrent.log ]]; then
 		chmod 775 /config/qBittorrent/data/logs/qbittorrent.log
 	fi
-	sleep infinity
+		while true; do
+  		# Ping uses both exit codes 1 and 2. Exit code 2 cannot be used for docker health checks, therefore we use this script to catch error code 2
+  		ping -c ${HEALTH_CHECK_PING_AMOUNT} $HEALTH_CHECK_HOST > /dev/null 2>&1
+  		STATUS=$?
+  		if [[ "${STATUS}" -ne 0 ]]; then
+  			echo "[ERROR] Network is possibly down." | ts '%Y-%m-%d %H:%M:%.S'
+  			sleep 5
+  				echo "[info] Restarting container." | ts '%Y-%m-%d %H:%M:%.S'
+  				exit 1
+  		fi
+  			echo "[info] Network is up" | ts '%Y-%m-%d %H:%M:%.S'
+  		sleep ${HEALTH_CHECK_INTERVAL} &
+  		# combine sleep background with wait so that the TERM trap above works
+  		wait $!
+  	done
 else
 	echo "qBittorrent failed to start!"
 fi

@@ -1,4 +1,4 @@
 #!/bin/sh
 
 
-docker build -t torrent:0.2 ./
+docker build -t torrent:0.3 ./
